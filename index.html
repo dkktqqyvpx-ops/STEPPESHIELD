@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>STEPPESHIELD — пожары и редкие виды степи</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='38' r='16' fill='%23d8431f'/><rect x='0' y='38' width='64' height='26' fill='%23eef1ea'/><rect x='4' y='37' width='56' height='3' fill='%231e2b24'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600&family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 64 64">
+    <clipPath id="above"><rect x="0" y="0" width="64" height="38"/></clipPath>
+    <circle cx="32" cy="38" r="17" fill="#d8431f" clip-path="url(#above)"/>
+    <rect x="3" y="37" width="58" height="3" rx="1.5" fill="#1e2b24"/>
+    <path d="M12 46h40M20 53h24" stroke="#7f9270" stroke-width="3" stroke-linecap="round"/>
+  </symbol>
+</svg>
+
+<div id="landing" class="landing">
+  <div class="wrap">
+    <nav class="bar">
+      <a class="brand" href="#" aria-label="STEPPESHIELD, на главную">
+        <svg><use href="#mark"/></svg>
+        <span><b>STEPPESHIELD</b></span>
+      </a>
+      <button class="cta" data-open>Открыть карту</button>
+    </nav>
+
+    <header class="hero">
+      <h1>Мониторинг пожаров. Охрана редких видов. В один клик.</h1>
+      <p class="lead">Спутниковые пожары и места обитания редких видов Казахстана на одной карте.</p>
+      <div class="actions">
+        <button class="cta fire" data-open>Открыть карту тревог</button>
+      </div>
+      <p class="live" id="liveLine"><i></i><span>Подключаем спутниковые данные…</span></p>
+    </header>
+  </div>
+
+  <svg class="horizon" id="horizon" viewBox="0 0 1200 240" preserveAspectRatio="none" aria-hidden="true"></svg>
+
+  <footer>
+    <div class="wrap">
+      <span>STEPPESHIELD, 2026</span>
+      <span>Данные: NASA FIRMS, GBIF, МСОП. Карта: OpenStreetMap</span>
+    </div>
+  </footer>
+</div>
+
+<div id="app" hidden>
+  <aside>
+    <div class="aside-top">
+      <div class="bar">
+        <a class="brand" href="#" data-home aria-label="На главную">
+          <svg><use href="#mark"/></svg>
+          <span><b>STEPPESHIELD</b></span>
+        </a>
+        <button class="link" data-home>На главную</button>
+      </div>
+      <div class="count"><b id="nSpecies">0</b><span id="countText">видов рядом с огнём</span></div>
+    </div>
+
+    <details class="settings" id="settings">
+      <summary>Источники и настройки</summary>
+      <div class="form">
+        <label>Ключ NASA FIRMS
+          <input type="text" id="mapKey" placeholder="вставьте ключ" autocomplete="off">
+        </label>
+        <div class="row">
+          <label>Спутник
+            <select id="source">
+              <option value="VIIRS_SNPP_NRT">VIIRS S-NPP</option>
+              <option value="VIIRS_NOAA20_NRT">VIIRS NOAA-20</option>
+              <option value="MODIS_NRT">MODIS</option>
+            </select>
+          </label>
+          <label>Период
+            <select id="days">
+              <option value="1">1 день</option>
+              <option value="2">2 дня</option>
+              <option value="3" selected>3 дня</option>
+            </select>
+          </label>
+        </div>
+        <label><span>Радиус тревоги: <b id="radiusVal">50</b> км</span>
+          <input type="range" id="radius" min="10" max="100" step="5" value="50">
+        </label>
+        <div class="btns">
+          <button class="btn primary" id="btnFirms">Загрузить пожары</button>
+          <button class="btn" id="btnCsv">Загрузить CSV</button>
+          <button class="btn" id="btnDemo">Демо-данные</button>
+          <input type="file" id="csvFile" accept=".csv,text/csv" hidden>
+        </div>
+        <p class="hint">Ключ бесплатно выдают на firms.modaps.eosdis.nasa.gov/api/map_key. CSV можно скачать там же в разделе Download.</p>
+      </div>
+    </details>
+
+    <div class="status">
+      <div id="stFires">Пожары: не загружены</div>
+      <div id="stSpecies">Виды: загружаются из GBIF…</div>
+    </div>
+
+    <div class="filters">
+      <label>Пожары
+        <select id="fAge"><option value="all">за весь период</option><option value="24">за 24 часа</option></select>
+      </label>
+      <label>Риск
+        <select id="fScore"><option value="0">любой</option><option value="30">от 30</option><option value="60">от 60</option></select>
+      </label>
+      <label>Вид
+        <select id="fSp"><option value="all">все виды</option></select>
+      </label>
+    </div>
+
+    <div class="alerts">
+      <h2 id="alertsHead">Тревоги, по убыванию риска</h2>
+      <div id="alertList"></div>
+    </div>
+  </aside>
+
+  <div class="mapwrap">
+    <div id="map" role="region" aria-label="Карта Казахстана"></div>
+    <div class="demo-flag" id="demoFlag" hidden>Демо-данные</div>
+    <div class="legend">
+      <div><span class="dot" style="background:#d8431f"></span>Пожар, размер = мощность</div>
+      <div><span class="dot" style="background:#7f9270"></span>Место обитания редкого вида</div>
+      <div><span class="dot" style="background:#1e2b24;box-shadow:0 0 0 2px #d8431f"></span>Место обитания в зоне тревоги</div>
+      <div style="margin-top:4px;border-top:1px solid var(--wormwood-100);padding-top:6px">
+        <button class="link" id="baseSwitch" style="font-size:12px">Сменить подложку</button>
+        <span id="baseName" style="font-size:12px;color:var(--ink-soft)"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<script src="app.js"></script>
+</body>
+</html>

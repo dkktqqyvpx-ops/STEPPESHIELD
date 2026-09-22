@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>STEPPESHIELD — пожары и редкие виды степи</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='38' r='16' fill='%23d8431f'/><rect x='0' y='38' width='64' height='26' fill='%23eef1ea'/><rect x='4' y='37' width='56' height='3' fill='%231e2b24'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600&family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+
+:root{
+  --wormwood-50:#eef1ea;   
+  --wormwood-100:#dfe5d8;
+  --wormwood:#7f9270;     
+  --ink:#1e2b24;          
+  --ink-soft:#4d5a52;
+  --straw:#c8a03c;         
+  --fire:#d8431f;         
+  --fire-soft:#f2b27a;
+  --white:#fbfcf9;
+  --display:"Unbounded","Golos Text",system-ui,sans-serif;
+  --text:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:var(--wormwood-50);color:var(--ink);font:17px/1.6 var(--text)}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--fire);outline-offset:3px;border-radius:4px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+[hidden]{display:none!important}
+
+
+.bar{display:flex;align-items:center;justify-content:space-between;padding:20px 0}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.brand svg{width:40px;height:40px;flex:none}
+.brand b{font:600 18px/1 var(--display);letter-spacing:.06em}
+.brand small{display:block;font:400 13px/1.2 var(--text);color:var(--ink-soft);margin-top:3px}
+.cta{display:inline-block;white-space:nowrap;background:var(--ink);color:var(--wormwood-50);text-decoration:none;border:0;border-radius:999px;padding:12px 22px;font-weight:500;cursor:pointer}
+.cta:hover{background:#2c3d34}
+.cta.fire{background:var(--fire);color:var(--white)}
+.cta.fire:hover{background:#bf3715}
+.link{background:none;border:0;padding:0;text-decoration:underline;text-underline-offset:3px;cursor:pointer;color:var(--ink-soft)}
+
+
+.hero{padding:56px 0 0}
+.hero h1{font:400 clamp(38px,6.4vw,84px)/1.02 var(--display);letter-spacing:-.01em;margin:0;max-width:14ch}
+.hero .lead{font-size:clamp(17px,1.6vw,20px);max-width:52ch;color:var(--ink-soft);margin:28px 0 32px}
+.hero .actions{display:flex;flex-wrap:wrap;align-items:center;gap:20px}
+.live{margin-top:40px;display:flex;gap:12px;align-items:flex-start;max-width:60ch;font-size:15px;color:var(--ink-soft)}
+.live i{flex:none;width:10px;height:10px;border-radius:50%;background:var(--wormwood);margin-top:7px}
+.live.on i{background:var(--fire);box-shadow:0 0 0 0 rgba(216,67,31,.5);animation:beat 2.4s ease-out infinite}
+.live strong{color:var(--ink);font-weight:600}
+@keyframes beat{70%{box-shadow:0 0 0 10px rgba(216,67,31,0)}100%{box-shadow:0 0 0 0 rgba(216,67,31,0)}}
+
+.horizon{display:block;width:100%;height:clamp(140px,20vw,240px);margin-top:48px;margin-bottom:0}
+
+section.block{padding:88px 0;border-top:1px solid var(--wormwood-100)}
+section.block h2{font:400 clamp(28px,3.6vw,44px)/1.1 var(--display);margin:0 0 24px;max-width:20ch}
+.two{display:grid;grid-template-columns:5fr 6fr;gap:56px;align-items:start}
+.prose p{margin:0 0 16px;max-width:60ch}
+.prose p:last-child{margin-bottom:0}
+
+.steps{list-style:none;padding:0;margin:40px 0 0;display:grid;grid-template-columns:repeat(3,1fr);gap:32px;counter-reset:s}
+.steps li{counter-increment:s;border-top:3px solid var(--ink);padding-top:18px}
+.steps li::before{content:counter(s);font:600 15px/1 var(--display);color:var(--fire);display:block;margin-bottom:14px}
+.steps h3{font:600 19px/1.3 var(--text);margin:0 0 8px}
+.steps p{margin:0;color:var(--ink-soft);font-size:16px}
+
+.formula{margin-top:56px;background:var(--ink);color:var(--wormwood-50);border-radius:20px;padding:32px 36px;display:grid;grid-template-columns:1fr auto;gap:32px;align-items:center}
+.formula p{margin:0;color:#b9c4b4;font-size:15px;max-width:52ch}
+.formula .eq{font:400 clamp(18px,2.2vw,26px)/1.4 var(--display)}
+.formula .eq em{font-style:normal;color:var(--fire-soft)}
+.scale{display:flex;gap:6px;flex-wrap:wrap}
+.scale span{font:600 13px/1 var(--text);padding:8px 10px;border-radius:8px;background:#2c3d34}
+
+.who{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:40px;border:1px solid var(--wormwood-100);border-radius:20px;overflow:hidden;background:var(--white)}
+.who div{padding:28px}
+.who div+div{border-left:1px solid var(--wormwood-100)}
+.who h3{font:600 18px/1.3 var(--text);margin:0 0 8px}
+.who p{margin:0;color:var(--ink-soft);font-size:16px}
+
+.honest dl{margin:0;display:grid;gap:24px}
+.honest dt{font-weight:600}
+.honest dd{margin:4px 0 0;color:var(--ink-soft);max-width:60ch}
+
+.final{padding:96px 0;border-top:1px solid var(--wormwood-100)}
+.final h2{font:400 clamp(28px,3.6vw,44px)/1.1 var(--display);margin:0 0 28px;max-width:20ch}
+
+.landing{min-height:100%;display:flex;flex-direction:column}
+.landing footer{margin-top:auto}
+.landing>.wrap{width:100%}
+footer{border-top:1px solid var(--wormwood-100);padding:28px 0 40px;font-size:14px;color:var(--ink-soft)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+#app{position:fixed;inset:0;display:grid;grid-template-columns:400px 1fr;background:var(--wormwood-50);
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+aside{background:var(--white);border-right:1px solid var(--wormwood-100);display:flex;flex-direction:column;min-height:0;font-size:15px;line-height:1.5}
+.aside-top{padding:16px 20px;border-bottom:1px solid var(--wormwood-100)}
+.aside-top .bar{padding:0 0 14px}
+.aside-top .brand svg{width:32px;height:32px}
+.aside-top .brand b{font-size:15px}
+.count{display:flex;align-items:baseline;gap:12px}
+.count b{font:600 44px/1 var(--display);color:var(--fire)}
+.count span{color:var(--ink-soft);font-size:14px;max-width:24ch}
+
+details.settings{border-bottom:1px solid var(--wormwood-100)}
+details.settings summary{cursor:pointer;padding:12px 20px;color:var(--ink-soft);list-style:none;font-weight:500}
+details.settings summary::-webkit-details-marker{display:none}
+details.settings summary::after{content:"＋";float:right;color:var(--wormwood)}
+details.settings[open] summary::after{content:"－"}
+.form{padding:0 20px 16px;display:grid;gap:12px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{display:grid;gap:4px;font-size:13px;color:var(--ink-soft)}
+input[type=text],select{font:inherit;background:var(--wormwood-50);border:1px solid var(--wormwood-100);border-radius:10px;padding:9px 11px;width:100%;color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--fire)}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btn{border:1px solid var(--wormwood-100);background:var(--wormwood-50);border-radius:999px;padding:8px 14px;cursor:pointer;font-size:14px}
+.btn:hover{border-color:var(--wormwood)}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:var(--wormwood-50)}
+.hint{font-size:12px;color:var(--ink-soft);margin:0}
+
+.status{padding:10px 20px;font-size:13px;color:var(--ink-soft);border-bottom:1px solid var(--wormwood-100);display:grid;gap:2px}
+.status .ok{color:#3f6b3a} .status .err{color:var(--fire)}
+
+.alerts{overflow-y:auto;flex:1;min-height:0;padding:8px 10px 20px}
+.alerts h2{font:500 13px/1.4 var(--text);color:var(--ink-soft);margin:10px 10px 6px}
+.empty{padding:14px 10px;color:var(--ink-soft)}
+.alert{display:grid;grid-template-columns:50px 1fr;gap:12px;padding:12px 10px;border-radius:14px;cursor:pointer}
+.alert:hover{background:var(--wormwood-50)}
+.alert.active{background:var(--wormwood-100)}
+.score{font:600 18px/1 var(--display);text-align:center;border-radius:10px;padding:10px 0;align-self:start}
+.score.high{background:var(--fire);color:var(--white)}
+.score.mid{background:var(--fire-soft);color:var(--ink)}
+.score.low{background:var(--wormwood-100);color:var(--ink)}
+.alert h3{margin:0;font-size:15px;font-weight:600}
+.sci{font-style:italic;color:var(--ink-soft);font-size:13px}
+.meta{font-size:13px;color:var(--ink-soft);margin-top:3px}
+.meta strong{color:var(--ink);font-weight:600}
+.tag{display:inline-block;font:600 11px/1 var(--text);padding:3px 6px;border-radius:5px;margin-left:6px;vertical-align:2px;background:var(--wormwood-100);color:var(--ink)}
+.tag.CR{background:var(--fire);color:var(--white)}
+.tag.EN{background:var(--fire-soft)}
+.tag.VU{background:#ead9a4}
+
+.mapwrap{position:relative;min-height:0}
+#map{height:100%;background:var(--wormwood-100)}
+.legend{position:absolute;right:12px;bottom:24px;z-index:500;background:rgba(251,252,249,.94);border:1px solid var(--wormwood-100);border-radius:14px;padding:10px 14px;font-size:13px;display:grid;gap:4px}
+.legend div{display:flex;align-items:center;gap:8px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+.demo-flag{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:500;background:var(--straw);color:var(--ink);font-weight:600;font-size:13px;padding:5px 12px;border-radius:999px}
+.leaflet-container{font:14px/1.45 var(--text)}
+.leaflet-popup-content-wrapper{border-radius:12px}
+
+@media (max-width:900px){
+  .two{grid-template-columns:1fr;gap:24px}
+  .steps,.who{grid-template-columns:1fr}
+  .who div+div{border-left:0;border-top:1px solid var(--wormwood-100)}
+  .formula{grid-template-columns:1fr}
+  section.block{padding:64px 0}
+}
+@media (max-width:520px){
+  .bar .cta{display:none}
+  .brand small{display:none}
+}
+@media (max-width:820px){
+  #app{position:static;display:flex;flex-direction:column;min-height:100%}
+  .mapwrap{order:-1;height:52vh;flex:none}
+  aside{border-right:0}
+  .alerts{overflow:visible}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 64 64">
+    <clipPath id="above"><rect x="0" y="0" width="64" height="38"/></clipPath>
+    <circle cx="32" cy="38" r="17" fill="#d8431f" clip-path="url(#above)"/>
+    <rect x="3" y="37" width="58" height="3" rx="1.5" fill="#1e2b24"/>
+    <path d="M12 46h40M20 53h24" stroke="#7f9270" stroke-width="3" stroke-linecap="round"/>
+  </symbol>
+</svg>
+
+<div id="landing" class="landing">
+  <div class="wrap">
+    <nav class="bar">
+      <a class="brand" href="#" aria-label="STEPPESHIELD, на главную">
+        <svg><use href="#mark"/></svg>
+        <span><b>STEPPESHIELD</b></span>
+      </a>
+      <button class="cta" data-open>Открыть карту</button>
+    </nav>
+
+    <header class="hero">
+      <h1>Спутник видит огонь. Мы показываем, кто рядом.</h1>
+      <p class="lead">Спутниковые пожары и места обитания редких видов Казахстана на одной карте.</p>
+      <div class="actions">
+        <button class="cta fire" data-open>Открыть карту тревог</button>
+      </div>
+      <p class="live" id="liveLine"><i></i><span>Подключаем спутниковые данные…</span></p>
+    </header>
+  </div>
+
+  <svg class="horizon" id="horizon" viewBox="0 0 1200 240" preserveAspectRatio="none" aria-hidden="true"></svg>
+
+  <footer>
+    <div class="wrap">
+      <span>STEPPESHIELD, 2026</span>
+      <span>Данные: NASA FIRMS, GBIF, МСОП. Карта: OpenStreetMap, CARTO</span>
+    </div>
+  </footer>
+</div>
+
+<div id="app" hidden>
+  <aside>
+    <div class="aside-top">
+      <div class="bar">
+        <a class="brand" href="#" data-home aria-label="На главную">
+          <svg><use href="#mark"/></svg>
+          <span><b>STEPPESHIELD</b></span>
+        </a>
+        <button class="link" data-home>На главную</button>
+      </div>
+      <div class="count"><b id="nSpecies">0</b><span id="countText">видов рядом с огнём</span></div>
+    </div>
+
+    <details class="settings" id="settings">
+      <summary>Источники и настройки</summary>
+      <div class="form">
+        <label>Ключ NASA FIRMS
+          <input type="text" id="mapKey" placeholder="вставьте ключ" autocomplete="off">
+        </label>
+        <div class="row">
+          <label>Спутник
+            <select id="source">
+              <option value="VIIRS_SNPP_NRT">VIIRS S-NPP</option>
+              <option value="VIIRS_NOAA20_NRT">VIIRS NOAA-20</option>
+              <option value="MODIS_NRT">MODIS</option>
+            </select>
+          </label>
+          <label>Период
+            <select id="days">
+              <option value="1">1 день</option>
+              <option value="2">2 дня</option>
+              <option value="3" selected>3 дня</option>
+            </select>
+          </label>
+        </div>
+        <label>Радиус тревоги: <span id="radiusVal">50</span> км
+          <input type="range" id="radius" min="10" max="100" step="5" value="50">
+        </label>
+        <div class="btns">
+          <button class="btn primary" id="btnFirms">Загрузить пожары</button>
+          <button class="btn" id="btnCsv">Загрузить CSV</button>
+          <button class="btn" id="btnDemo">Демо-данные</button>
+          <input type="file" id="csvFile" accept=".csv,text/csv" hidden>
+        </div>
+        <p class="hint">Ключ бесплатно выдают на firms.modaps.eosdis.nasa.gov/api/map_key. CSV можно скачать там же в разделе Download.</p>
+      </div>
+    </details>
+
+    <div class="status">
+      <div id="stFires">Пожары: не загружены</div>
+      <div id="stSpecies">Виды: загружаются из GBIF…</div>
+    </div>
+
+    <div class="alerts">
+      <h2>Тревоги, по убыванию риска</h2>
+      <div id="alertList"></div>
+    </div>
+  </aside>
+
+  <div class="mapwrap">
+    <div id="map" role="region" aria-label="Карта Казахстана"></div>
+    <div class="demo-flag" id="demoFlag" hidden>Демо-данные</div>
+    <div class="legend">
+      <div><span class="dot" style="background:#d8431f"></span>Пожар, размер = мощность</div>
+      <div><span class="dot" style="background:#7f9270"></span>Место обитания редкого вида</div>
+      <div><span class="dot" style="background:#1e2b24;box-shadow:0 0 0 2px #d8431f"></span>Место обитания в зоне тревоги</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+
+(function drawHorizon(){
+  const svg=document.getElementById("horizon"), NS="http://www.w3.org/2000/svg";
+  let seed=7; const r=()=>((seed=(seed*16807)%2147483647)/2147483647);
+  const base=200;
+  const add=(tag,attrs)=>{const el=document.createElementNS(NS,tag);for(const k in attrs)el.setAttribute(k,attrs[k]);svg.appendChild(el);return el;};
+  
+  const defs=add("defs",{});
+  defs.innerHTML='<radialGradient id="glow"><stop offset="0" stop-color="#d8431f" stop-opacity=".55"/><stop offset="1" stop-color="#d8431f" stop-opacity="0"/></radialGradient>';
+  [[260,34],[640,22],[930,40]].forEach(([x,w])=>{
+    add("ellipse",{cx:x,cy:base-2,rx:w*2.4,ry:w,fill:"url(#glow)"});
+    add("circle",{cx:x,cy:base-3,r:3.2,fill:"#d8431f"});
+  });
+  add("rect",{x:0,y:base,width:1200,height:40,fill:"#dfe5d8"});
+  add("line",{x1:0,y1:base,x2:1200,y2:base,stroke:"#1e2b24","stroke-width":1.5});
+
+  const colors=["#7f9270","#9aa98a","#c8a03c","#b5ab86"];
+  for(let i=0;i<420;i++){
+    const x=r()*1200, h=30+r()*150*(0.4+Math.abs(Math.sin(x/170))*0.6), lean=10+r()*40;
+    const y0=base+4+r()*30;
+    add("path",{d:`M${x.toFixed(1)} ${y0.toFixed(1)} Q ${(x+lean*.3).toFixed(1)} ${(y0-h*.6).toFixed(1)} ${(x+lean).toFixed(1)} ${(y0-h).toFixed(1)}`,
+      stroke:colors[Math.floor(r()*colors.length)],"stroke-width":(0.6+r()*1.1).toFixed(2),fill:"none","stroke-linecap":"round",opacity:(0.45+r()*0.5).toFixed(2)});
+  }
+})();
+
+const SPECIES=[
+  {sci:"Vanellus gregarius",ru:"Кречётка",iucn:"CR"},
+  {sci:"Falco cherrug",ru:"Балобан",iucn:"EN"},
+  {sci:"Aquila nipalensis",ru:"Степной орёл",iucn:"EN"},
+  {sci:"Otis tarda",ru:"Дрофа",iucn:"VU"},
+  {sci:"Chlamydotis macqueenii",ru:"Дрофа-красотка",iucn:"VU"},
+  {sci:"Aquila heliaca",ru:"Могильник",iucn:"VU"},
+  {sci:"Tetrax tetrax",ru:"Стрепет",iucn:"NT"},
+  {sci:"Circus macrourus",ru:"Степной лунь",iucn:"NT"},
+  {sci:"Saiga tatarica",ru:"Сайгак",iucn:"NT"}
+];
+const WEIGHT={CR:5,EN:4,VU:3,NT:2};
+const BBOX={w:46.4,s:40.5,e:87.4,n:55.5};
+
+let fires=[],occ=[],alerts=[],radiusKm=50,occIsDemo=false,firesLoaded=false;
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function store(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function setStatus(id,text,cls){const el=$(id);el.textContent=text;el.className=cls||"";}
+function plural(n,a,b,c){const m=n%10,h=n%100;if(m===1&&h!==11)return a;if(m>=2&&m<=4&&(h<12||h>14))return b;return c;}
+function haversine(a,b,c,d){const R=6371,r=Math.PI/180,x=Math.sin((c-a)*r/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin((d-b)*r/2)**2;return 2*R*Math.asin(Math.sqrt(x));}
+
+function parseFirmsCsv(text){
+  const lines=text.trim().split(/\r?\n/);
+  if(lines.length<2||!/latitude/i.test(lines[0])) throw new Error(lines[0].slice(0,120)||"пустой ответ");
+  const h=lines[0].split(",").map(s=>s.trim().toLowerCase()),ix=n=>h.indexOf(n);
+  const iLat=ix("latitude"),iLon=ix("longitude"),iFrp=ix("frp"),iConf=ix("confidence"),iDate=ix("acq_date"),iTime=ix("acq_time");
+  const out=[];
+  for(let i=1;i<lines.length;i++){
+    const c=lines[i].split(","),lat=+c[iLat],lon=+c[iLon];
+    if(!isFinite(lat)||!isFinite(lon))continue;
+    if(lat<BBOX.s||lat>BBOX.n||lon<BBOX.w||lon>BBOX.e)continue;
+    const conf=(c[iConf]||"").trim();
+    if(conf==="l"||conf==="low")continue;
+    if(/^\d+$/.test(conf)&&+conf<30)continue;
+    const t=(c[iTime]||"").padStart(4,"0");
+    out.push({lat,lon,frp:+c[iFrp]||0,date:c[iDate]||"",time:t.slice(0,2)+":"+t.slice(2)+" UTC"});
+  }
+  return out;
+}
+async function loadFirms(){
+  const key=$("mapKey").value.trim();
+  if(!key){setStatus("stFires","Пожары: вставьте ключ FIRMS или загрузите CSV","err");$("settings").open=true;return;}
+  store("firmsKey",key);
+  if(occIsDemo) await loadSpecies();
+  const src=$("source").value,days=$("days").value;
+  setStatus("stFires","Пожары: загружаю из NASA FIRMS…");
+  try{
+    const r=await fetch(`https://firms.modaps.eosdis.nasa.gov/api/area/csv/${encodeURIComponent(key)}/${src}/${BBOX.w},${BBOX.s},${BBOX.e},${BBOX.n}/${days}`);
+    fires=parseFirmsCsv(await r.text());
+    firesLoaded=true; demoMode(false);
+    setStatus("stFires",`Пожары: ${fires.length} точек за ${days} дн. (${src})`,"ok");
+    drawFires();compute();
+  }catch(e){
+    setStatus("stFires","Пожары: не загрузились ("+e.message+"). Скачайте CSV на сайте FIRMS и нажмите «Загрузить CSV».","err");
+    updateLive();
+  }
+}
+
+async function loadSpecies(){
+  setStatus("stSpecies","Виды: загружаю из GBIF…");
+  const year=new Date().getFullYear();
+  const res=await Promise.allSettled(SPECIES.map(async sp=>{
+    const r=await fetch(`https://api.gbif.org/v1/occurrence/search?country=KZ&hasCoordinate=true&hasGeospatialIssue=false&year=2000,${year}&limit=300&scientificName=${encodeURIComponent(sp.sci)}`);
+    if(!r.ok)throw new Error(r.status);
+    const j=await r.json();
+    return j.results.filter(o=>o.decimalLatitude!=null).map(o=>({lat:o.decimalLatitude,lon:o.decimalLongitude,sp,year:o.year||"",link:`https://www.gbif.org/occurrence/${o.key}`}));
+  }));
+  const ok=res.filter(x=>x.status==="fulfilled");
+  if(!ok.length){setStatus("stSpecies","Виды: GBIF не отвечает. Нажмите «Демо-данные», чтобы показать работу на примере.","err");return;}
+  occ=ok.flatMap(x=>x.value); occIsDemo=false;
+  setStatus("stSpecies",`Виды: ${occ.length} находок, ${ok.length} из ${SPECIES.length} видов (GBIF, с 2000 г.)`,"ok");
+  drawOcc();compute();
+}
+
+function demoMode(on){$("demoFlag").hidden=!on;}
+function loadDemo(){
+  let s=2026;const rand=()=>((s=(s*16807)%2147483647)/2147483647);
+  fires=[];
+  [[52.6,63.8],[51.4,69.2],[49.6,57.6],[50.6,51.9],[48.3,73.4],[46.2,70.1],[47.4,66.6]].forEach(([la,lo])=>{
+    const n=6+Math.floor(rand()*14);
+    for(let i=0;i<n;i++)fires.push({lat:la+(rand()-.5)*1.1,lon:lo+(rand()-.5)*1.6,frp:3+rand()*60,date:new Date(Date.now()-rand()*2*864e5).toISOString().slice(0,10),time:""});
+  });
+  const centers=[[52.2,63.0],[51.0,68.5],[49.9,58.3],[50.2,52.6],[48.0,72.5],[46.6,69.4],[47.9,67.2],[44.8,76.8],[43.6,51.3]];
+  occ=[];
+  SPECIES.forEach((sp,k)=>{for(let i=0;i<25;i++){const[la,lo]=centers[(k+i)%centers.length];occ.push({lat:la+(rand()-.5)*2.2,lon:lo+(rand()-.5)*3,sp,year:2015+Math.floor(rand()*10),link:""});}});
+  occIsDemo=true;firesLoaded=true;demoMode(true);
+  setStatus("stFires",`Пожары: ${fires.length} демо-точек`,"ok");
+  setStatus("stSpecies",`Виды: ${occ.length} демо-находок`,"ok");
+  drawFires();drawOcc();compute();
+}
+
+let map,fireLayer,occLayer,focusLayer;
+function initMap(){
+  if(map){map.invalidateSize();return;}
+  map=L.map("map",{preferCanvas:true}).fitBounds([[BBOX.s,BBOX.w],[BBOX.n,BBOX.e]]);
+  const attr="&copy; OpenStreetMap | NASA FIRMS | GBIF";
+  const osm=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:attr}).addTo(map);
+  const grey=L.tileLayer("https://tiles.wmflabs.org/osm-no-labels/{z}/{x}/{y}.png",{maxZoom:18,attribution:attr});
+  fireLayer=L.layerGroup().addTo(map);occLayer=L.layerGroup().addTo(map);focusLayer=L.layerGroup().addTo(map);
+  L.control.layers({"Обычная карта":osm,"Без подписей":grey},{"Пожары":fireLayer,"Места обитания":occLayer}).addTo(map);
+  drawFires();drawOcc(lastThreat);
+}
+function drawFires(){
+  if(!map)return;fireLayer.clearLayers();
+  fires.forEach(f=>L.circleMarker([f.lat,f.lon],{radius:3+Math.min(9,Math.sqrt(f.frp)),color:"#d8431f",weight:1,fillColor:"#d8431f",fillOpacity:.7})
+    .bindPopup(`<b>Пожар</b><br>${esc(f.date)} ${esc(f.time)}<br>Мощность ${f.frp.toFixed(1)} МВт<br>${f.lat.toFixed(3)}, ${f.lon.toFixed(3)}`).addTo(fireLayer));
+}
+let lastThreat=null;
+function drawOcc(threat){
+  lastThreat=threat||null;
+  if(!map)return;occLayer.clearLayers();
+  occ.forEach(o=>{
+    const hot=threat&&threat.has(o);
+    L.circleMarker([o.lat,o.lon],hot?{radius:6,color:"#d8431f",weight:2,fillColor:"#1e2b24",fillOpacity:1}:{radius:4,color:"#5f7351",weight:1,fillColor:"#7f9270",fillOpacity:.6})
+     .bindPopup(`<b>${esc(o.sp.ru)}</b> <i>${esc(o.sp.sci)}</i><br>Категория МСОП: ${o.sp.iucn}<br>Год наблюдения: ${esc(o.year)}${o.link?`<br><a href="${o.link}" target="_blank" rel="noopener">Запись в GBIF</a>`:""}`)
+     .addTo(occLayer);
+  });
+}
+
+function compute(){
+  if(fires.length&&occ.length){
+    const R=radiusKm,dLat=R/111,cells=new Map(),threat=new Set();
+    for(const o of occ){
+      const dLon=R/(111*Math.cos(o.lat*Math.PI/180));let best=null,bd=Infinity;
+      for(const f of fires){
+        if(Math.abs(f.lat-o.lat)>dLat||Math.abs(f.lon-o.lon)>dLon)continue;
+        const d=haversine(o.lat,o.lon,f.lat,f.lon);if(d<bd){bd=d;best=f;}
+      }
+      if(!best||bd>R)continue;
+      threat.add(o);
+      const score=Math.round(WEIGHT[o.sp.iucn]*(1-bd/R)*20);
+      const key=o.sp.sci+"|"+Math.round(o.lat*2)+"|"+Math.round(o.lon*2),prev=cells.get(key);
+      if(!prev||score>prev.score)cells.set(key,{o,f:best,d:bd,score,count:(prev?prev.count:0)+1});else prev.count++;
+    }
+    alerts=[...cells.values()].sort((a,b)=>b.score-a.score);
+    drawOcc(threat);
+  }else alerts=[];
+  renderAlerts();updateLive();
+}
+function renderAlerts(){
+  const n=new Set(alerts.map(a=>a.o.sp.sci)).size;
+  $("nSpecies").textContent=n;
+  $("countText").textContent=`${plural(n,"вид","вида","видов")} в радиусе ${radiusKm} км от огня`;
+  const list=$("alertList");
+  if(!firesLoaded){list.innerHTML='<div class="empty">Загрузите пожары в настройках выше. Нет ключа — нажмите «Демо-данные».</div>';return;}
+  if(!alerts.length){list.innerHTML=`<div class="empty">В радиусе ${radiusKm} км от пожаров мест обитания редких видов нет. Увеличьте радиус или период.</div>`;return;}
+  list.innerHTML=alerts.map((a,i)=>{
+    const lvl=a.score>=60?"high":a.score>=30?"mid":"low";
+    return `<div class="alert" data-i="${i}" tabindex="0" role="button" aria-label="${esc(a.o.sp.ru)}, риск ${a.score}">
+      <div class="score ${lvl}" title="Риск из 100">${a.score}</div>
+      <div><h3>${esc(a.o.sp.ru)}<span class="tag ${a.o.sp.iucn}">${a.o.sp.iucn}</span></h3>
+      <div class="sci">${esc(a.o.sp.sci)}</div>
+      <div class="meta">Огонь в <strong>${a.d.toFixed(1)} км</strong>, ${esc(a.f.date)}${a.count>1?`, находок рядом: ${a.count}`:""}</div>
+      <div class="meta">${a.o.lat.toFixed(4)}, ${a.o.lon.toFixed(4)}</div></div></div>`;
+  }).join("");
+  list.querySelectorAll(".alert").forEach(el=>{const go=()=>focusAlert(+el.dataset.i,el);el.onclick=go;el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go();}};});
+}
+function focusAlert(i,el){
+  const a=alerts[i];if(!a||!map)return;
+  document.querySelectorAll(".alert.active").forEach(x=>x.classList.remove("active"));el.classList.add("active");
+  focusLayer.clearLayers();
+  L.circle([a.f.lat,a.f.lon],{radius:radiusKm*1000,color:"#d8431f",weight:1,fillOpacity:.05}).addTo(focusLayer);
+  L.polyline([[a.o.lat,a.o.lon],[a.f.lat,a.f.lon]],{color:"#1e2b24",weight:2,dashArray:"6 6"}).addTo(focusLayer);
+  map.flyToBounds(L.latLngBounds([[a.o.lat,a.o.lon],[a.f.lat,a.f.lon]]).pad(1.2),{maxZoom:10,duration:.8});
+  L.popup().setLatLng([a.o.lat,a.o.lon]).setContent(`<b>${esc(a.o.sp.ru)}</b>: огонь в ${a.d.toFixed(1)} км<br>Риск ${a.score} из 100`).openOn(map);
+  if(window.innerWidth<=820)$("map").scrollIntoView({behavior:"smooth"});
+}
+
+function updateLive(){
+  const line=$("liveLine"),span=line.querySelector("span");
+  if(!firesLoaded){line.classList.remove("on");
+    span.innerHTML=load("firmsKey")?"Подключаем спутниковые данные…":"Откройте карту и подключите ключ NASA FIRMS, чтобы увидеть пожары за последние дни.";return;}
+  const n=new Set(alerts.map(a=>a.o.sp.sci)).size,days=$("days").value;
+  line.classList.add("on");
+  span.innerHTML=`${occIsDemo?"Демо: ":"Сейчас: "}спутники видят <strong>${fires.length} ${plural(fires.length,"очаг","очага","очагов")}</strong> за ${days} ${plural(+days,"день","дня","дней")}. <strong>${n} ${plural(n,"редкий вид","редких вида","редких видов")}</strong> в радиусе ${radiusKm} км от огня.`;
+}
+
+function showApp(){$("landing").hidden=true;$("app").hidden=false;window.scrollTo(0,0);if(location.hash!=="#map")history.pushState(null,"","#map");requestAnimationFrame(initMap);}
+function showHome(e){if(e)e.preventDefault();$("app").hidden=true;$("landing").hidden=false;if(location.hash)history.pushState(null,"",location.pathname);}
+document.querySelectorAll("[data-open]").forEach(b=>b.onclick=showApp);
+document.querySelectorAll("[data-home]").forEach(b=>b.onclick=showHome);
+window.addEventListener("popstate",()=>location.hash==="#map"?showApp():showHome());
+
+$("radius").oninput=e=>{radiusKm=+e.target.value;$("radiusVal").textContent=radiusKm;};
+$("radius").onchange=compute;
+$("btnFirms").onclick=loadFirms;
+$("btnDemo").onclick=loadDemo;
+$("btnCsv").onclick=()=>$("csvFile").click();
+$("csvFile").onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{if(occIsDemo)await loadSpecies();fires=parseFirmsCsv(await f.text());firesLoaded=true;demoMode(false);
+    setStatus("stFires",`Пожары: ${fires.length} точек из файла ${f.name}`,"ok");drawFires();compute();}
+  catch(err){setStatus("stFires","Пожары: файл не похож на CSV из FIRMS","err");}
+  e.target.value="";
+};
+
+renderAlerts();updateLive();
+const key=load("firmsKey");
+if(key){$("mapKey").value=key;loadSpecies().then(loadFirms);}else{$("settings").open=true;loadSpecies();}
+if(location.hash==="#map")showApp();
+</script>
+</body>
+</html>
