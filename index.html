@@ -13,6 +13,7 @@
 </head>
 <body>
 
+<!-- Логотип: солнце садится за горизонт, солнце — огонь -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="mark" viewBox="0 0 64 64">
     <clipPath id="above"><rect x="0" y="0" width="64" height="38"/></clipPath>
@@ -22,6 +23,7 @@
   </symbol>
 </svg>
 
+<!-- ================= ГЛАВНАЯ ================= -->
 <div id="landing" class="landing">
   <div class="wrap">
     <nav class="bar">
@@ -52,6 +54,7 @@
   </footer>
 </div>
 
+<!-- ================= КАРТА ================= -->
 <div id="app" hidden>
   <aside>
     <div class="aside-top">
@@ -84,6 +87,7 @@
               <option value="1">1 день</option>
               <option value="2">2 дня</option>
               <option value="3" selected>3 дня</option>
+              <option value="7">7 дней</option>
             </select>
           </label>
         </div>
@@ -96,13 +100,14 @@
           <button class="btn" id="btnDemo">Демо-данные</button>
           <input type="file" id="csvFile" accept=".csv,text/csv" hidden>
         </div>
-        <p class="hint">Ключ бесплатно выдают на firms.modaps.eosdis.nasa.gov/api/map_key. CSV можно скачать там же в разделе Download.</p>
+        <p class="hint">Обычно ключ не нужен: карта берёт пожары, которые сервер обновляет каждые 3 часа. Свой ключ бесплатно выдают на firms.modaps.eosdis.nasa.gov/api/map_key, CSV можно скачать там же в разделе Download.</p>
       </div>
     </details>
 
     <div class="status">
       <div id="stFires">Пожары: не загружены</div>
       <div id="stSpecies">Виды: загружаются из GBIF…</div>
+      <div id="stFlares"></div>
     </div>
 
     <div class="filters">
@@ -115,6 +120,11 @@
       <label>Вид
         <select id="fSp"><option value="all">все виды</option></select>
       </label>
+      <label class="check">
+        <input type="checkbox" id="fFlare" checked>
+        <span>Не считать постоянные источники (газовые факелы) тревогой</span>
+      </label>
+      <div class="flare-note" id="flareNote" aria-live="polite"></div>
     </div>
 
     <div class="alerts">
@@ -128,6 +138,7 @@
     <div class="demo-flag" id="demoFlag" hidden>Демо-данные</div>
     <div class="legend">
       <div><span class="dot" style="background:#d8431f"></span>Пожар, размер = мощность</div>
+      <div><span class="dot" style="background:#9aa39c;box-shadow:0 0 0 1.5px #4d5a52"></span>Постоянный источник, вероятно факел</div>
       <div><span class="dot" style="background:#7f9270"></span>Место обитания редкого вида</div>
       <div><span class="dot" style="background:#1e2b24;box-shadow:0 0 0 2px #d8431f"></span>Место обитания в зоне тревоги</div>
       <div style="margin-top:4px;border-top:1px solid var(--wormwood-100);padding-top:6px">
@@ -140,6 +151,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
+<script src="core.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
