@@ -1,11 +1,12 @@
+/* Палитра «полынь»: серебристо-зелёная степь, сухой ковыль, огонь */
 :root{
-  --wormwood-50:#eef1ea;  
+  --wormwood-50:#eef1ea;   /* фон, цвет полыни на свету */
   --wormwood-100:#dfe5d8;
-  --wormwood:#7f9270;      
-  --ink:#1e2b24;           
+  --wormwood:#7f9270;      /* полынь */
+  --ink:#1e2b24;           /* текст, тёмная хвоя */
   --ink-soft:#4d5a52;
-  --straw:#c8a03c;        
-  --fire:#d8431f;        
+  --straw:#c8a03c;         /* сухой ковыль */
+  --fire:#d8431f;          /* огонь */
   --fire-soft:#f2b27a;
   --white:#fbfcf9;
   --display:"Unbounded","Golos Text",system-ui,sans-serif;
@@ -21,6 +22,7 @@ button{font:inherit;color:inherit}
 .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
 [hidden]{display:none!important}
 
+/* ---------- Шапка ---------- */
 .bar{display:flex;align-items:center;justify-content:space-between;padding:20px 0}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none}
 .brand svg{width:40px;height:40px;flex:none}
@@ -32,6 +34,7 @@ button{font:inherit;color:inherit}
 .cta.fire:hover{background:#bf3715}
 .link{background:none;border:0;padding:0;text-decoration:underline;text-underline-offset:3px;cursor:pointer;color:var(--ink-soft)}
 
+/* ---------- Первый экран ---------- */
 .hero{padding:56px 0 0}
 .hero h1{font:400 clamp(34px,5.4vw,72px)/1.06 var(--display);letter-spacing:-.01em;margin:0;max-width:17ch}
 .hero .lead{font-size:clamp(17px,1.6vw,20px);max-width:52ch;color:var(--ink-soft);margin:28px 0 32px}
@@ -42,8 +45,10 @@ button{font:inherit;color:inherit}
 .live strong{color:var(--ink);font-weight:600}
 @keyframes beat{70%{box-shadow:0 0 0 10px rgba(216,67,31,0)}100%{box-shadow:0 0 0 0 rgba(216,67,31,0)}}
 
+/* Горизонт с ковылём — главный визуальный элемент */
 .horizon{display:block;width:100%;height:clamp(140px,20vw,240px);margin-top:48px;margin-bottom:0}
 
+/* ---------- Разделы ---------- */
 section.block{padding:88px 0;border-top:1px solid var(--wormwood-100)}
 section.block h2{font:400 clamp(28px,3.6vw,44px)/1.1 var(--display);margin:0 0 24px;max-width:20ch}
 .two{display:grid;grid-template-columns:5fr 6fr;gap:56px;align-items:start}
@@ -82,6 +87,7 @@ section.block h2{font:400 clamp(28px,3.6vw,44px)/1.1 var(--display);margin:0 0 2
 footer{border-top:1px solid var(--wormwood-100);padding:28px 0 40px;font-size:14px;color:var(--ink-soft)}
 footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
+/* ---------- Приложение: карта ---------- */
 #app{position:fixed;inset:0;display:grid;grid-template-columns:400px 1fr;background:var(--wormwood-50);
   padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 aside{background:var(--white);border-right:1px solid var(--wormwood-100);display:flex;flex-direction:column;min-height:0;font-size:15px;line-height:1.5}
@@ -115,6 +121,11 @@ input[type=range]{width:100%;accent-color:var(--fire)}
 
 .filters{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 20px;border-bottom:1px solid var(--wormwood-100)}
 .filters select{padding:7px 8px;font-size:13px}
+.filters .check{grid-column:1/-1;display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--ink);cursor:pointer;margin-top:2px}
+.filters .check input{accent-color:var(--fire);width:16px;height:16px;margin:2px 0 0;flex:none}
+.flare-note{grid-column:1/-1;font-size:12px;color:#3f6b3a}
+.flare-note:empty{display:none}
+.meta.flare-mark{color:#6b5a1e}
 .alerts{overflow-y:auto;flex:1;min-height:0;padding:8px 10px 20px}
 .alerts h2{font:500 13px/1.4 var(--text);color:var(--ink-soft);margin:10px 10px 6px}
 .empty{padding:14px 10px;color:var(--ink-soft)}
@@ -143,6 +154,7 @@ input[type=range]{width:100%;accent-color:var(--fire)}
 .leaflet-container{font:14px/1.45 var(--text)}
 .leaflet-popup-content-wrapper{border-radius:12px}
 
+/* ---------- Адаптив ---------- */
 @media (max-width:900px){
   .two{grid-template-columns:1fr;gap:24px}
   .steps,.who{grid-template-columns:1fr}
@@ -157,6 +169,7 @@ input[type=range]{width:100%;accent-color:var(--fire)}
 @media (max-width:820px){
   #app{position:static;display:flex;flex-direction:column;min-height:100%}
   .mapwrap{order:-1;height:52vh;flex:none}
+  .legend{right:8px;bottom:8px;padding:6px 10px;font-size:11px;gap:2px}
   aside{border-right:0}
   .alerts{overflow:visible}
 }

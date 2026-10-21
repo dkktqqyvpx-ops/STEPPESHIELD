@@ -1,0 +1,57 @@
+name: Обновить пожары и отправить тревоги
+
+on:
+  schedule:
+    - cron: "17 */3 * * *"   # каждые 3 часа
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Отправить проверочное сообщение в Telegram (для демонстрации)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: steppeshield-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Загрузить пожары, виды и отправить тревоги
+        env:
+          FIRMS_KEY: ${{ secrets.FIRMS_KEY }}
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          SITE_URL: ${{ vars.SITE_URL }}
+          FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force }}
+        run: node scripts/update.mjs
+
+      - name: Сохранить данные для сайта
+        run: |
+          git config user.name "steppeshield-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then
+            echo "Данные не изменились"
+          else
+            git commit -m "data: обновление пожаров $(date -u +'%Y-%m-%d %H:%M') UTC"
+            git push
+          fi
+
+      - name: Пересобрать сайт на GitHub Pages
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds" || echo "Pages обновится при следующем пуше"
